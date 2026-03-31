@@ -7,41 +7,45 @@ import java.awt.FlowLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import gamehub.sudoku.model.GameRecord;
+import gamehub.model.AppTheme;
+import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuGameRecord;
+import gamehub.sudoku.model.GameTheme;
+import gamehub.sudoku.model.SudokuStyleSetting;
 
 /**
  * Root sudoku module panel that can be embedded in Game Hub.
  */
 public class SudokuModulePanel extends JPanel {
 
-    private static final int EASY = 0;
-    private static final int MEDIUM = 1;
-    private static final int HARD = 2;
-
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel moduleRoot = new JPanel(cardLayout);
+    private final SudokuStyleSetting styleSetting;
 
     private final SudokuHomePanel homePanel;
     private final SudokuGamePanel gamePanel;
+    private final JPanel topBar;
+    private final JButton backButton;
 
     public SudokuModulePanel(Runnable onBackToHub) {
         super(new BorderLayout());
 
-        GameRecord record = new GameRecord();
+        styleSetting = new SudokuStyleSetting();
+        SudokuGameRecord record = new SudokuGameRecord();
 
-        homePanel = new SudokuHomePanel(record);
-        gamePanel = new SudokuGamePanel(this::showHome, record);
+        homePanel = new SudokuHomePanel(record, styleSetting);
+        gamePanel = new SudokuGamePanel(this::showHome, record, styleSetting);
 
-        homePanel.setOnEasy(() -> startNewGame(EASY));
-        homePanel.setOnMedium(() -> startNewGame(MEDIUM));
-        homePanel.setOnHard(() -> startNewGame(HARD));
+        homePanel.setOnEasy(() -> startNewGame(Difficulty.EASY));
+        homePanel.setOnMedium(() -> startNewGame(Difficulty.MEDIUM));
+        homePanel.setOnHard(() -> startNewGame(Difficulty.HARD));
         homePanel.setOnQuit(onBackToHub);
 
         moduleRoot.add(homePanel, "HOME");
         moduleRoot.add(gamePanel, "GAME");
 
-        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton backButton = new JButton("Back to Hub");
+        topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        backButton = new JButton("Back to Hub");
         backButton.addActionListener(event -> onBackToHub.run());
         topBar.add(backButton);
 
@@ -49,6 +53,7 @@ public class SudokuModulePanel extends JPanel {
         add(moduleRoot, BorderLayout.CENTER);
 
         showHome();
+        applyTheme(AppTheme.LIGHT);
     }
 
     public void activate() {
@@ -56,15 +61,42 @@ public class SudokuModulePanel extends JPanel {
         homePanel.requestFocusInWindow();
     }
 
+    public void applyTheme(AppTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        styleSetting.setTheme(theme.isDark() ? GameTheme.DARK : GameTheme.LIGHT);
+
+        homePanel.refreshTheme();
+        gamePanel.refreshTheme();
+
+        GameTheme currentTheme = styleSetting.getTheme();
+        topBar.setBackground(currentTheme.getTopBarBackground());
+        backButton.setForeground(currentTheme.getTextPrimary());
+        backButton.setBackground(currentTheme.getButtonBackground());
+        backButton.setBorder(
+            javax.swing.BorderFactory.createLineBorder(
+                currentTheme.getButtonBorder(),
+                1,
+                true
+            )
+        );
+        backButton.setOpaque(true);
+        moduleRoot.setBackground(currentTheme.getPageBackground());
+        setBackground(moduleRoot.getBackground());
+    }
+
     private void showHome() {
         homePanel.refreshStats();
+        homePanel.refreshTheme();
         cardLayout.show(moduleRoot, "HOME");
         moduleRoot.revalidate();
         moduleRoot.repaint();
     }
 
-    private void startNewGame(int level) {
-        gamePanel.startNewGame(level);
+    private void startNewGame(Difficulty difficulty) {
+        gamePanel.startNewGame(difficulty);
+        gamePanel.refreshTheme();
         cardLayout.show(moduleRoot, "GAME");
         moduleRoot.revalidate();
         moduleRoot.repaint();

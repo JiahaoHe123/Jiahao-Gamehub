@@ -1,8 +1,13 @@
 package gamehub.sudoku.view;
 
+import java.awt.Color;
+
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+
+import gamehub.sudoku.model.GameTheme;
+import gamehub.sudoku.model.SudokuStyleSetting;
 
 /**
  * Bottom action bar for the Sudoku game page.
@@ -25,8 +30,11 @@ public class ControlPanel extends JPanel {
     private Runnable onCheck = () -> {};
     private Runnable onResetNotes = () -> {};
     private java.util.function.Consumer<Boolean> onToggleNotes = on -> {};
+    private final SudokuStyleSetting styleSetting;
 
-    public ControlPanel() {
+    public ControlPanel(SudokuStyleSetting styleSetting) {
+        this.styleSetting = styleSetting;
+
         add(homeBtn);
         add(checkBtn);
         add(resetBtn);
@@ -62,5 +70,38 @@ public class ControlPanel extends JPanel {
     public void resetNotesModeToggle() {
         notesModeBtn.setSelected(false);
         notesModeBtn.setText("Notes Mode: OFF");
+    }
+
+    public void setNotesModeToggle(boolean enabled) {
+        notesModeBtn.setSelected(enabled);
+        notesModeBtn.setText(enabled ? "Notes Mode: ON" : "Notes Mode: OFF");
+    }
+
+    public void refreshTheme() {
+        GameTheme theme = styleSetting.getTheme();
+
+        setBackground(theme.getTopBarBackground());
+
+        Color buttonBg = theme.getButtonBackground();
+        Color text = theme.getTextPrimary();
+        Color border = theme.getButtonBorder();
+
+        styleButton(homeBtn, buttonBg, text, border);
+        styleButton(checkBtn, buttonBg, text, border);
+        styleButton(resetBtn, buttonBg, text, border);
+        styleButton(notesModeBtn, buttonBg, text, border);
+    }
+
+    private void styleButton(
+        javax.swing.AbstractButton button,
+        Color bg,
+        Color text,
+        Color border
+    ) {
+        button.setBackground(bg);
+        button.setForeground(text);
+        button.setBorder(javax.swing.BorderFactory.createLineBorder(border, 1, true));
+        button.setOpaque(true);
+        button.setFocusPainted(false);
     }
 }

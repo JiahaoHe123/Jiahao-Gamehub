@@ -1,7 +1,6 @@
 package gamehub.sudoku.view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -12,7 +11,10 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import gamehub.sudoku.controller.SudokuGameController;
-import gamehub.sudoku.model.GameRecord;
+import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuGameRecord;
+import gamehub.sudoku.model.GameTheme;
+import gamehub.sudoku.model.SudokuStyleSetting;
 import gamehub.sudoku.model.SudokuBoard;
 import gamehub.sudoku.util.SquareWrap;
 
@@ -31,15 +33,12 @@ import gamehub.sudoku.util.SquareWrap;
  */
 public class SudokuGamePanel extends JPanel {
 
-    private static final Color PAGE_BG = new Color(245, 245, 245);
-    private static final Color CARD_BORDER = new Color(220, 220, 220);
-    private static final Color ATTEMPTS_COLOR = new Color(180, 0, 0);
-
     /** Callback used to navigate back to the Home page. */
     private final Runnable onHome;
 
     /** Persistent record system (wins/losses) shared across the app. */
-    private final GameRecord record;
+    private final SudokuGameRecord record;
+    private final SudokuStyleSetting styleSetting;
 
     /** Current game board view. */
     private BoardPanel boardPanel;
@@ -62,37 +61,46 @@ public class SudokuGamePanel extends JPanel {
     /** Remaining-attempts label. */
     private final JLabel attemptsLabel;
 
-    /** The currently selected difficulty level for the ongoing game. */
-    private int currentLevel = 0;
+    /** The currently selected difficulty for the ongoing game. */
+    private Difficulty currentDifficulty = Difficulty.EASY;
 
-    public SudokuGamePanel(Runnable onHome, GameRecord record) {
+    public SudokuGamePanel(
+        Runnable onHome,
+        SudokuGameRecord record,
+        SudokuStyleSetting styleSetting
+    ) {
         super(new BorderLayout());
         this.onHome = onHome;
         this.record = record;
+        this.styleSetting = styleSetting;
 
-        setBackground(PAGE_BG);
+        setBackground(styleSetting.getTheme().getPageBackground());
 
         numberBar = new NumberBar();
         attemptsLabel = createAttemptsLabel();
         centerWrap = createCenterWrap();
         boardCard = createBoardCard();
-        controlPanel = new ControlPanel();
+        controlPanel = new ControlPanel(styleSetting);
         controlPanel.setOnHome(this.onHome);
 
         add(buildTopBar(), BorderLayout.NORTH);
         add(centerWrap, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
+
+        refreshTheme();
     }
 
-    public void startNewGame(int level) {
-        this.currentLevel = level;
+    public void startNewGame(Difficulty difficulty) {
+        this.currentDifficulty = difficulty;
 
-        SudokuBoard boardModel = new SudokuBoard(level);
-        boardPanel = new BoardPanel(boardModel);
+        SudokuBoard boardModel = new SudokuBoard(difficulty);
+        boardPanel = new BoardPanel(boardModel, styleSetting);
         controller = new SudokuGameController(boardModel, boardPanel);
+        boardPanel.refreshTheme();
 
         bindTopBarToController();
         bindControllerCallbacks();
+        controller.setOnNoteModeChanged(controlPanel::setNotesModeToggle);
         replaceBoardComponent();
         controlPanel.resetNotesModeToggle();
 
@@ -117,6 +125,34 @@ public class SudokuGamePanel extends JPanel {
         SwingUtilities.invokeLater(() -> boardPanel.requestFocusInWindow());
     }
 
+    public void refreshTheme() {
+        GameTheme theme = styleSetting.getTheme();
+
+        setBackground(theme.getPageBackground());
+        centerWrap.setBackground(getBackground());
+
+        boardCard.setBackground(theme.getCardBackground());
+        boardCard.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    theme.getCardBorder(),
+                    1,
+                    true
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            )
+        );
+
+        attemptsLabel.setForeground(theme.getAttemptsColor());
+
+        controlPanel.refreshTheme();
+        if (boardPanel != null) {
+            boardPanel.refreshTheme();
+        }
+
+        repaint();
+    }
+
     private JPanel buildTopBar() {
         JPanel topBar = new JPanel(new BorderLayout());
         topBar.setOpaque(false);
@@ -130,7 +166,7 @@ public class SudokuGamePanel extends JPanel {
     private JLabel createAttemptsLabel() {
         JLabel label = new JLabel();
         label.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
-        label.setForeground(ATTEMPTS_COLOR);
+        label.setForeground(styleSetting.getTheme().getAttemptsColor());
         label.setBorder(
             BorderFactory.createEmptyBorder(0, 0, 0, 12)
         );
@@ -146,10 +182,10 @@ public class SudokuGamePanel extends JPanel {
 
     private JPanel createBoardCard() {
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
+        card.setBackground(styleSetting.getTheme().getCardBackground());
         card.setBorder(
             BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(CARD_BORDER, 1, true),
+                BorderFactory.createLineBorder(styleSetting.getTheme().getCardBorder(), 1, true),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
             )
         );
@@ -200,7 +236,7 @@ public class SudokuGamePanel extends JPanel {
     }
 
     private void handleWin() {
-        record.recordWinByLevel(currentLevel);
+        record.recordWin(currentDifficulty);
 
         int choice = JOptionPane.showConfirmDialog(
             this,
@@ -229,7 +265,7 @@ public class SudokuGamePanel extends JPanel {
     }
 
     private void handleLose() {
-        record.recordLossByLevel(currentLevel);
+        record.recordLoss(currentDifficulty);
         JOptionPane.showMessageDialog(
             this,
             "You have used all your chance",

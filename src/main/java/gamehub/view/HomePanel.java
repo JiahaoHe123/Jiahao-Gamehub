@@ -5,13 +5,19 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+
+import gamehub.model.AppTheme;
+import gamehub.model.HomeTheme;
 
 /**
  * Root home page for Game Hub.
@@ -19,31 +25,37 @@ import javax.swing.JPanel;
  */
 public class HomePanel extends JPanel {
 
-    private static final Color PAGE_BG = new Color(245, 245, 245);
-    private static final Color CARD_BORDER = new Color(220, 220, 220);
-
+    private final JPanel card;
+    private final JLabel title;
+    private final JLabel subtitle;
     private final JButton snakeBtn;
     private final JButton sudokuBtn;
+    private final JToggleButton darkModeToggle;
+
+    private AppTheme currentTheme = AppTheme.LIGHT;
 
     private Runnable onSnake = () -> {};
     private Runnable onSudoku = () -> {};
+    private Consumer<AppTheme> onThemeChanged = theme -> {};
 
     public HomePanel() {
         super(new GridBagLayout());
 
-        setBackground(PAGE_BG);
+        setBackground(HomeTheme.LIGHT_PAGE_BG);
         setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        JPanel card = buildCard();
+        card = buildCard();
 
-        JLabel title = createTitleLabel();
-        JLabel subtitle = createSubtitleLabel();
+        title = createTitleLabel();
+        subtitle = createSubtitleLabel();
 
         snakeBtn = new JButton("Play Snake");
         sudokuBtn = new JButton("Play Sudoku");
+        darkModeToggle = new JToggleButton("Dark Mode: OFF");
 
         styleButton(snakeBtn);
         styleButton(sudokuBtn);
+        styleButton(darkModeToggle);
 
         bindActions();
 
@@ -54,6 +66,8 @@ public class HomePanel extends JPanel {
         card.add(snakeBtn);
         card.add(Box.createVerticalStrut(12));
         card.add(sudokuBtn);
+        card.add(Box.createVerticalStrut(16));
+        card.add(darkModeToggle);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -61,6 +75,8 @@ public class HomePanel extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
 
         add(card, gbc);
+
+        applyTheme(AppTheme.LIGHT);
     }
 
     public void setOnSnake(Runnable onSnake) {
@@ -71,13 +87,52 @@ public class HomePanel extends JPanel {
         this.onSudoku = onSudoku == null ? () -> {} : onSudoku;
     }
 
+    public void setOnThemeChanged(Consumer<AppTheme> onThemeChanged) {
+        this.onThemeChanged = onThemeChanged == null ? theme -> {} : onThemeChanged;
+    }
+
+    public void applyTheme(AppTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        currentTheme = theme;
+
+        boolean dark = theme.isDark();
+        Color pageBg = dark ? HomeTheme.DARK_PAGE_BG : HomeTheme.LIGHT_PAGE_BG;
+        Color cardBg = dark ? HomeTheme.DARK_CARD_BG : HomeTheme.LIGHT_CARD_BG;
+        Color cardBorder = dark ? HomeTheme.DARK_CARD_BORDER : HomeTheme.LIGHT_CARD_BORDER;
+        Color textColor = dark ? HomeTheme.DARK_TEXT : HomeTheme.LIGHT_TEXT;
+
+        setBackground(pageBg);
+
+        card.setBackground(cardBg);
+        card.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(cardBorder, 1, true),
+                BorderFactory.createEmptyBorder(25, 30, 25, 30)
+            )
+        );
+
+        title.setForeground(textColor);
+        subtitle.setForeground(dark ? HomeTheme.DARK_TEXT_SECONDARY : textColor);
+
+        styleActionButton(snakeBtn, dark, textColor, cardBorder);
+        styleActionButton(sudokuBtn, dark, textColor, cardBorder);
+        styleActionButton(darkModeToggle, dark, textColor, cardBorder);
+
+        darkModeToggle.setSelected(dark);
+        darkModeToggle.setText(dark ? "Dark Mode: ON" : "Dark Mode: OFF");
+
+        repaint();
+    }
+
     private JPanel buildCard() {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
+        card.setBackground(HomeTheme.LIGHT_CARD_BG);
         card.setBorder(
             BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(CARD_BORDER, 1, true),
+                BorderFactory.createLineBorder(HomeTheme.LIGHT_CARD_BORDER, 1, true),
                 BorderFactory.createEmptyBorder(25, 30, 25, 30)
             )
         );
@@ -102,13 +157,32 @@ public class HomePanel extends JPanel {
     private void bindActions() {
         snakeBtn.addActionListener(e -> onSnake.run());
         sudokuBtn.addActionListener(e -> onSudoku.run());
+        darkModeToggle.addActionListener(e -> {
+            AppTheme nextTheme = darkModeToggle.isSelected()
+                ? AppTheme.DARK
+                : AppTheme.LIGHT;
+            applyTheme(nextTheme);
+            onThemeChanged.accept(currentTheme);
+        });
     }
 
-    private void styleButton(JButton button) {
+    private void styleButton(AbstractButton button) {
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFont(new Font("SansSerif", Font.PLAIN, 16));
         button.setFocusPainted(false);
         button.setMaximumSize(new java.awt.Dimension(260, 40));
         button.setPreferredSize(new java.awt.Dimension(260, 40));
+    }
+
+    private void styleActionButton(
+        AbstractButton button,
+        boolean dark,
+        Color textColor,
+        Color borderColor
+    ) {
+        button.setForeground(textColor);
+        button.setBackground(dark ? HomeTheme.DARK_BUTTON_BG : HomeTheme.LIGHT_BUTTON_BG);
+        button.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
+        button.setOpaque(true);
     }
 }

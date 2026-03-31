@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import gamehub.model.AppTheme;
 import gamehub.snake.view.SnakeModulePanel;
 import gamehub.sudoku.view.SudokuModulePanel;
 
@@ -23,6 +24,7 @@ public class GameHubFrame extends JFrame {
     private final HomePanel homePanel;
     private final SnakeModulePanel snakeModulePanel;
     private final SudokuModulePanel sudokuModulePanel;
+    private AppTheme currentTheme = AppTheme.LIGHT;
 
     public GameHubFrame() {
         super("Game Hub");
@@ -33,6 +35,7 @@ public class GameHubFrame extends JFrame {
 
         homePanel.setOnSnake(this::showSnake);
         homePanel.setOnSudoku(this::showSudoku);
+        homePanel.setOnThemeChanged(this::setAppTheme);
 
         rootPanel.add(homePanel, HUB_HOME);
         rootPanel.add(snakeModulePanel, SNAKE);
@@ -43,7 +46,18 @@ public class GameHubFrame extends JFrame {
         setSize(1000, 820);
         setLocationRelativeTo(null);
 
+        setAppTheme(AppTheme.LIGHT);
         showHubHome();
+    }
+
+    private void setAppTheme(AppTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        currentTheme = theme;
+        homePanel.applyTheme(currentTheme);
+        snakeModulePanel.applyTheme(currentTheme);
+        sudokuModulePanel.applyTheme(currentTheme);
     }
 
     private void showHubHome() {

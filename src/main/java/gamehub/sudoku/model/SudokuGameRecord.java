@@ -2,8 +2,18 @@ package gamehub.sudoku.model;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import gamehub.model.GameRecord;
 
 /**
  * GameRecord is a lightweight persistent record system for the Sudoku game.
@@ -47,71 +57,12 @@ import java.util.*;
  * <h3>Usage</h3>
  *
  * <pre>
- * GameRecord record = new GameRecord();
- * record.recordWinByLevel(0); // Easy
+ * SudokuGameRecord record = new SudokuGameRecord();
+ * record.recordWin(Difficulty.EASY);
  * int wins = record.getWins(Difficulty.EASY);
  * </pre>
  */
-public class GameRecord {
-
-    /**
-     * Difficulty levels supported by the game.
-     *
-     * <p>
-     * Each difficulty has a stable string key used to build txt-file keys like
-     * "wins.easy" or "loss.medium".
-     * </p>
-     */
-    public enum Difficulty {
-        EASY("easy"),
-        MEDIUM("medium"),
-        HARD("hard");
-
-        /**
-         * Key suffix used in the history file
-         * (e.g., "easy", "medium", "hard").
-         */
-        private final String key;
-
-        Difficulty(String key) {
-            this.key = key;
-        }
-
-        /** @return the string key for this difficulty. */
-        public String key() {
-            return key;
-        }
-
-        /**
-         * Convert an integer level (used by your UI / Matrix generator) into a
-         * Difficulty.
-         *
-         * <p>
-         * Mapping:
-         * </p>
-         * <ul>
-         * <li>0 -> EASY</li>
-         * <li>1 -> MEDIUM</li>
-         * <li>2 -> HARD</li>
-         * </ul>
-         *
-         * @param level difficulty index
-         * @return corresponding Difficulty
-         * @throws IllegalArgumentException if level is not 0/1/2
-         */
-        public static Difficulty fromLevel(int level) {
-            return switch (level) {
-                case 0 -> EASY;
-                case 1 -> MEDIUM;
-                case 2 -> HARD;
-                default -> throw new IllegalArgumentException(
-                        "Unknown difficulty level: " + level);
-            };
-        }
-    }
-
-    /** Path to the history.txt file on disk. */
-    private final Path filePath;
+public class SudokuGameRecord extends GameRecord {
 
     /**
      * In-memory store for counters.
@@ -123,20 +74,10 @@ public class GameRecord {
      */
     private final Map<String, Integer> wins = new HashMap<>();
 
-    /**
-     * Create a record system using the default app data location.
-     *
-     * <p>
-     * macOS default:
-     * </p>
-     *
-     * <pre>
-     * ~/Library/Application Support/Sudoku/history.txt
-     * </pre>
-     */
-    public GameRecord() {
+    public SudokuGameRecord() {
         this(getDefaultHistoryFile());
     }
+
 
     /**
      * Create a record system using a specific file path (useful for testing).
@@ -148,8 +89,8 @@ public class GameRecord {
      *
      * @param filePath path to the history file
      */
-    public GameRecord(Path filePath) {
-        this.filePath = filePath;
+    public SudokuGameRecord(Path filePath) {
+        super(filePath);
         // init defaults
         for (Difficulty d : Difficulty.values()) {
             wins.put(winKey(d), 0);
@@ -287,9 +228,11 @@ public class GameRecord {
      * Best-effort: any IO errors are swallowed so gameplay is never blocked.
      * </p>
      */
-    private void load() {
+    @Override
+    protected void load() {
         try {
             ensureParentDir();
+            Path filePath = getFilePath();
             if (!Files.exists(filePath)) {
                 save(); // create file with defaults
                 return;
@@ -338,9 +281,11 @@ public class GameRecord {
      * This reduces the risk of file corruption if the app crashes while writing.
      * </p>
      */
-    private void save() {
+    @Override
+    protected void save() {
         try {
             ensureParentDir();
+            Path filePath = getFilePath();
 
             List<String> out = new ArrayList<>();
             out.add("# Sudoku history");
@@ -372,22 +317,22 @@ public class GameRecord {
         }
     }
 
-    /**
-     * Ensure the directory that contains the history file exists.
-     *
-     * <p>
-     * Files.createDirectories is safe to call repeatedly; if the directory
-     * already exists, it does nothing.
-     * </p>
-     *
-     * @throws IOException if the directories cannot be created
-     */
-    private void ensureParentDir() throws IOException {
-        Path parent = filePath.getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
-    }
+    // /**
+    //  * Ensure the directory that contains the history file exists.
+    //  *
+    //  * <p>
+    //  * Files.createDirectories is safe to call repeatedly; if the directory
+    //  * already exists, it does nothing.
+    //  * </p>
+    //  *
+    //  * @throws IOException if the directories cannot be created
+    //  */
+    // private void ensureParentDir() throws IOException {
+    //     Path parent = filePath.getParent();
+    //     if (parent != null) {
+    //         Files.createDirectories(parent);
+    //     }
+    // }
 
     /**
      * Build the key used to store wins in the txt file.
@@ -409,36 +354,7 @@ public class GameRecord {
         return "loss." + d.key();
     }
 
-    // -------------------- default location --------------------
-
-    /**
-     * Default file path for history persistence.
-     *
-     * @return path to history.txt inside the app data directory
-     */
-    public static Path getDefaultHistoryFile() {
+    private static Path getDefaultHistoryFile() {
         return getDefaultAppDataDir("Sudoku").resolve("history.txt");
-    }
-
-    /**
-     * Default app data directory for macOS.
-     *
-     * <p>
-     * Example:
-     * </p>
-     *
-     * <pre>
-     * ~/Library/Application Support/Sudoku
-     * </pre>
-     *
-     * @param appName directory name under Application Support
-     * @return directory path
-     */
-    public static Path getDefaultAppDataDir(String appName) {
-        String home = System.getProperty("user.home");
-        if (home == null || home.isBlank())
-            home = ".";
-
-        return Paths.get(home, "Library", "Application Support", appName);
     }
 }

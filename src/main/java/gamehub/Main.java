@@ -6,11 +6,11 @@ import gamehub.view.GameHubFrame;
 
 public class Main {
 
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(() -> {
-			GameHubFrame frame = new GameHubFrame();
-			frame.setVisible(true);
-		});
-	}
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            GameHubFrame frame = new GameHubFrame();
+            frame.setVisible(true);
+        });
+    }
 
 }

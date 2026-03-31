@@ -31,6 +31,7 @@ public class StyleCustomizationPanel extends JPanel {
     private final JButton saveAndBackButton;
     private final JButton backButton;
     private final JScrollPane scrollPane;
+    private boolean themeManagedExternally = false;
 
     private Runnable onBackRequested = () -> {};
 
@@ -141,6 +142,9 @@ public class StyleCustomizationPanel extends JPanel {
         );
 
         themeCombo.addActionListener(event -> {
+            if (themeManagedExternally) {
+                return;
+            }
             String selected = (String) themeCombo.getSelectedItem();
             if ("Light".equals(selected)) {
                 styleSettings.setTheme(GameTheme.LIGHT);
@@ -258,6 +262,17 @@ public class StyleCustomizationPanel extends JPanel {
     public void setOnBackRequested(Runnable onBackRequested) {
         this.onBackRequested =
             onBackRequested == null ? () -> {} : onBackRequested;
+    }
+
+    public void setThemeManagedExternally(boolean themeManagedExternally) {
+        this.themeManagedExternally = themeManagedExternally;
+        themeCombo.setEnabled(!themeManagedExternally);
+        themeTitleLabel.setEnabled(!themeManagedExternally);
+        if (themeManagedExternally) {
+            themeCombo.setToolTipText("Theme is managed from Game Hub home page");
+        } else {
+            themeCombo.setToolTipText(null);
+        }
     }
 
     public void syncFromSettings() {

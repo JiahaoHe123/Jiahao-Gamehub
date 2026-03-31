@@ -2,6 +2,7 @@ package gamehub.sudoku.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import gamehub.sudoku.model.SudokuBoard;
 import gamehub.sudoku.view.BoardPanel;
@@ -20,6 +21,7 @@ public class SudokuGameController {
     private Runnable onWin = () -> {};
     private Runnable onLose = () -> {};
     private Runnable onAttemptsChanged = () -> {};
+    private Consumer<Boolean> onNoteModeChanged = on -> {};
 
     public SudokuGameController(SudokuBoard boardModel, BoardPanel boardPanel) {
         this.boardModel = boardModel;
@@ -97,6 +99,18 @@ public class SudokuGameController {
     public void setOnAttemptsChanged(Runnable onAttemptsChanged) {
         this.onAttemptsChanged =
             onAttemptsChanged == null ? () -> {} : onAttemptsChanged;
+    }
+
+    public void setOnNoteModeChanged(Consumer<Boolean> onNoteModeChanged) {
+        this.onNoteModeChanged =
+            onNoteModeChanged == null ? on -> {} : onNoteModeChanged;
+    }
+
+    public void toggleNoteModeByShortcut() {
+        boolean next = !boardPanel.isNoteMode();
+        boardPanel.setNoteMode(next);
+        onNoteModeChanged.accept(next);
+        boardPanel.refreshHighlights();
     }
 
     private void initializeCounts(SudokuBoard boardModel) {

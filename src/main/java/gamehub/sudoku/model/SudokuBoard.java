@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -26,12 +25,12 @@ import java.util.Random;
  * </ul>
  *
  * <p>
- * Difficulty mapping (level -> #empties):
+ * Difficulty mapping (difficulty -> #empties):
  * </p>
  * <ul>
- * <li>0 (Easy) -> 32 empties</li>
- * <li>1 (Medium) -> 40 empties</li>
- * <li>2 (Hard) -> 49 empties</li>
+ * <li>Easy -> 30 empties</li>
+ * <li>Medium -> 40 empties</li>
+ * <li>Hard -> 50 empties</li>
  * </ul>
  *
  * <p>
@@ -39,7 +38,7 @@ import java.util.Random;
  * </p>
  * <ul>
  * <li>This class uses a randomized backtracking solver, so each new
- * Matrix(level) will
+ * Matrix(difficulty) will
  * generate a different board.</li>
  * <li>Uniqueness is enforced by counting solutions after each removal attempt,
  * but the
@@ -57,8 +56,14 @@ public class SudokuBoard implements Iterable<Integer> {
     /** Candidate numbers that can appear in Sudoku cells. */
     private static final List<Integer> POOL = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-    /** Difficulty level -> number of cells to remove (i.e., how many blanks). */
-    private static final Map<Integer, Integer> MAP = Map.of(0, 30, 1, 40, 2, 50);
+    /** Difficulty -> number of cells to remove (i.e., how many blanks). */
+    // private static final Map<Difficulty, Integer> MAP = new EnumMap<>(Difficulty.class);
+
+    // static {
+    //     MAP.put(Difficulty.EASY, 30);
+    //     MAP.put(Difficulty.MEDIUM, 40);
+    //     MAP.put(Difficulty.HARD, 50);
+    // }
 
     private int[][] data; // Current puzzle grid (0 indicates empty).
     /** The complete solved board, stored as a row-major list of 81 ints. */
@@ -79,9 +84,9 @@ public class SudokuBoard implements Iterable<Integer> {
      * <li>Store the target empty count for UI/game logic.</li>
      * </ol>
      *
-     * @param level difficulty level (0=easy, 1=medium, 2=hard)
+     * @param difficulty game difficulty
      */
-    public SudokuBoard(int level) {
+    public SudokuBoard(Difficulty difficulty) {
         data = new int[SIZE][SIZE];
         fillMatrix(); // Fill entire board with a valid solution.
 
@@ -91,10 +96,19 @@ public class SudokuBoard implements Iterable<Integer> {
 
         // Remove cells according to difficulty
         // while keeping uniqueness if possible.
-        emptyCells = removeEntries(level);
+        emptyCells = removeEntries(difficulty);
 
         // Store the configured number of empty cells for win detection/UI.
-        // emptyCells = MAP.get(level);
+        // emptyCells = MAP.get(difficulty);
+    }
+
+    /**
+     * Compatibility constructor to map integer levels to Difficulty.
+     *
+     * @param level difficulty level (0=easy, 1=medium, 2=hard)
+     */
+    public SudokuBoard(int level) {
+        this(Difficulty.fromLevel(level));
     }
 
     /**
@@ -204,16 +218,16 @@ public class SudokuBoard implements Iterable<Integer> {
      * The loop is bounded by a max number of attempts to prevent infinite loops.
      * </p>
      *
-     * @param level difficulty level (0..2)
-     * @throws IllegalArgumentException if level is not supported
+     * @param difficulty game difficulty
+     * @throws IllegalArgumentException if difficulty is not supported
      * @return total empty cells in a given matrix
      */
-    public int removeEntries(int level) {
-        if (!MAP.containsKey(level)) {
-            throw new IllegalArgumentException(
-                    "Difficulty level must be in range [0,2]");
+    public int removeEntries(Difficulty difficulty) {
+        if (difficulty == null) {
+            throw new IllegalArgumentException("Difficulty cannot be null");
         }
-        int num = MAP.get(level);
+        int num = difficulty.emptyCells();
+        // int num = MAP.get(difficulty);
         Random r = new Random();
         int removed = 0;
         int attempts = 0;

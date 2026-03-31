@@ -1,6 +1,5 @@
 package gamehub.sudoku.view;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -14,7 +13,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import gamehub.sudoku.model.GameRecord;
+import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuGameRecord;
+import gamehub.sudoku.model.GameTheme;
+import gamehub.sudoku.model.SudokuStyleSetting;
 
 /**
  * Home page panel of the Sudoku application.
@@ -30,11 +32,13 @@ import gamehub.sudoku.model.GameRecord;
  */
 public class SudokuHomePanel extends JPanel {
 
-    private static final Color PAGE_BG = new Color(245, 245, 245);
-    private static final Color CARD_BORDER = new Color(220, 220, 220);
-
     /** Persistent game record used to display statistics. */
-    private final GameRecord record;
+    private final SudokuGameRecord record;
+    private final SudokuStyleSetting styleSetting;
+
+    private final JPanel card;
+    private final JLabel titleLabel;
+    private final JLabel subtitleLabel;
 
     /** Label that displays win/loss statistics for all difficulty levels. */
     private final JLabel statsLabel;
@@ -51,17 +55,17 @@ public class SudokuHomePanel extends JPanel {
     private Runnable onHard = () -> {};
     private Runnable onQuit = () -> {};
 
-    public SudokuHomePanel(GameRecord record) {
+    public SudokuHomePanel(SudokuGameRecord record, SudokuStyleSetting styleSetting) {
         super(new GridBagLayout());
         this.record = record;
+        this.styleSetting = styleSetting;
 
-        setBackground(PAGE_BG);
         setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        JPanel card = buildCard();
+        card = buildCard();
 
-        JLabel title = createTitleLabel();
-        JLabel subtitle = createSubtitleLabel();
+        titleLabel = createTitleLabel();
+        subtitleLabel = createSubtitleLabel();
 
         statsLabel = new JLabel("", SwingConstants.CENTER);
         statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -81,9 +85,9 @@ public class SudokuHomePanel extends JPanel {
         bindActions();
         refreshStats();
 
-        card.add(title);
+        card.add(titleLabel);
         card.add(Box.createVerticalStrut(10));
-        card.add(subtitle);
+        card.add(subtitleLabel);
         card.add(Box.createVerticalStrut(12));
         card.add(statsLabel);
         card.add(Box.createVerticalStrut(25));
@@ -102,6 +106,8 @@ public class SudokuHomePanel extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
 
         add(card, gbc);
+
+        refreshTheme();
     }
 
     public void setOnEasy(Runnable onEasy) {
@@ -120,21 +126,43 @@ public class SudokuHomePanel extends JPanel {
         this.onQuit = onQuit == null ? () -> {} : onQuit;
     }
 
+    public void refreshTheme() {
+        GameTheme theme = styleSetting.getTheme();
+
+        setBackground(theme.getPageBackground());
+        card.setBackground(theme.getCardBackground());
+        card.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(theme.getCardBorder(), 1, true),
+                BorderFactory.createEmptyBorder(25, 30, 25, 30)
+            )
+        );
+
+        titleLabel.setForeground(theme.getTextPrimary());
+        subtitleLabel.setForeground(theme.getTextSecondary());
+        statsLabel.setForeground(theme.getTextSecondary());
+
+        styleActionButton(easyBtn, theme);
+        styleActionButton(mediumBtn, theme);
+        styleActionButton(hardBtn, theme);
+        styleActionButton(quitBtn, theme);
+    }
+
     /**
      * Refreshes the statistics displayed on the home page.
      */
     public void refreshStats() {
-        int easyWin = record.getWins(GameRecord.Difficulty.EASY);
-        int mediumWin = record.getWins(GameRecord.Difficulty.MEDIUM);
-        int hardWin = record.getWins(GameRecord.Difficulty.HARD);
+        int easyWin = record.getWins(Difficulty.EASY);
+        int mediumWin = record.getWins(Difficulty.MEDIUM);
+        int hardWin = record.getWins(Difficulty.HARD);
 
-        int easyLose = record.getLosses(GameRecord.Difficulty.EASY);
-        int mediumLose = record.getLosses(GameRecord.Difficulty.MEDIUM);
-        int hardLose = record.getLosses(GameRecord.Difficulty.HARD);
+        int easyLose = record.getLosses(Difficulty.EASY);
+        int mediumLose = record.getLosses(Difficulty.MEDIUM);
+        int hardLose = record.getLosses(Difficulty.HARD);
 
-        double easyRate = record.getWinRate(GameRecord.Difficulty.EASY);
-        double mediumRate = record.getWinRate(GameRecord.Difficulty.MEDIUM);
-        double hardRate = record.getWinRate(GameRecord.Difficulty.HARD);
+        double easyRate = record.getWinRate(Difficulty.EASY);
+        double mediumRate = record.getWinRate(Difficulty.MEDIUM);
+        double hardRate = record.getWinRate(Difficulty.HARD);
 
         statsLabel.setText(
             "<html><div style='text-align:center;'>"
@@ -152,13 +180,6 @@ public class SudokuHomePanel extends JPanel {
     private JPanel buildCard() {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(
-            BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(CARD_BORDER, 1, true),
-                BorderFactory.createEmptyBorder(25, 30, 25, 30)
-            )
-        );
         card.setAlignmentX(Component.CENTER_ALIGNMENT);
         return card;
     }
@@ -190,5 +211,12 @@ public class SudokuHomePanel extends JPanel {
         button.setFocusPainted(false);
         button.setMaximumSize(new java.awt.Dimension(260, 40));
         button.setPreferredSize(new java.awt.Dimension(260, 40));
+    }
+
+    private void styleActionButton(JButton button, GameTheme theme) {
+        button.setForeground(theme.getTextPrimary());
+        button.setBackground(theme.getButtonBackground());
+        button.setBorder(BorderFactory.createLineBorder(theme.getButtonBorder(), 1, true));
+        button.setOpaque(true);
     }
 }

@@ -5,6 +5,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import gamehub.sudoku.controller.SudokuGameController;
+import gamehub.sudoku.model.GameTheme;
+import gamehub.sudoku.model.SudokuStyleSetting;
 import gamehub.sudoku.model.SudokuBoard;
 
 import java.awt.Color;
@@ -29,12 +31,7 @@ public class BoardPanel extends JPanel {
     public static final int SIZE = 9;
     public static final int TOLERANCE = 3;
 
-    private static final Color BOARD_BG = new Color(235, 220, 160);
-    private static final Color SELECTED_CELL = new Color(255, 255, 0);
-    private static final Color SAME_NUMBER = new Color(255, 255, 180);
-    private static final Color CORRECT_CELL = new Color(160, 210, 170);
-    private static final Color WRONG_CELL = new Color(240, 120, 120);
-    private static final Color WRONG_HIGHLIGHT = new Color(255, 165, 0);
+    private final SudokuStyleSetting styleSetting;
 
     private final CellButton[][] cells;
     private CellButton selectedButton;
@@ -42,10 +39,11 @@ public class BoardPanel extends JPanel {
     private boolean notesMode = false;
     private SudokuGameController controller;
 
-    public BoardPanel(SudokuBoard boardModel) {
+    public BoardPanel(SudokuBoard boardModel, SudokuStyleSetting styleSetting) {
+        this.styleSetting = styleSetting;
         setFocusable(true);
         setLayout(new GridLayout(SIZE, SIZE));
-        setBackground(BOARD_BG);
+        setBackground(theme().getBoardBackground());
 
         cells = new CellButton[SIZE][SIZE];
         buildCells(boardModel);
@@ -54,6 +52,11 @@ public class BoardPanel extends JPanel {
 
     public void setController(SudokuGameController controller) {
         this.controller = controller;
+    }
+
+    public void refreshTheme() {
+        setBackground(theme().getBoardBackground());
+        refreshHighlights();
     }
 
     public CellButton getSelectedButton() {
@@ -131,31 +134,31 @@ public class BoardPanel extends JPanel {
     }
 
     public void markCellCorrect(CellButton button) {
-        button.setBackground(CORRECT_CELL);
+        button.setBackground(theme().getCorrectCell());
         button.setCellState(CellButton.State.NORMAL);
         button.setFixed(true);
     }
 
     public void markCellWrong(CellButton button) {
         button.setCellState(CellButton.State.WRONG);
-        button.setBackground(WRONG_CELL);
+        button.setBackground(theme().getWrongCell());
     }
 
     public void clearCell(CellButton button) {
         button.setText("");
-        button.setBackground(SELECTED_CELL);
+        button.setBackground(theme().getSelectedCell());
         button.setCellState(CellButton.State.NORMAL);
     }
 
     public void prepareCellForNotes(CellButton button) {
         button.setText("");
-        button.setBackground(SELECTED_CELL);
+        button.setBackground(theme().getSelectedCell());
         button.setCellState(CellButton.State.NORMAL);
     }
 
     public void setSelectedCell(CellButton button) {
         selectedButton = button;
-        selectedButton.setBackground(SELECTED_CELL);
+        selectedButton.setBackground(theme().getSelectedCell());
         selectedButton.setOpaque(true);
         requestFocusInWindow();
         highlightSameNumbers(selectedButton.getText());
@@ -204,10 +207,20 @@ public class BoardPanel extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent event) {
-                if (controller == null || selectedButton == null) {
+                if (controller == null) {
                     return;
                 }
-                controller.handleKeyTyped(selectedButton, event.getKeyChar());
+
+                char ch = event.getKeyChar();
+                if (ch == 'n' || ch == 'N') {
+                    controller.toggleNoteModeByShortcut();
+                    return;
+                }
+
+                if (selectedButton == null) {
+                    return;
+                }
+                controller.handleKeyTyped(selectedButton, ch);
             }
         });
     }
@@ -234,15 +247,15 @@ public class BoardPanel extends JPanel {
                     boolean hasNote = hasTarget && btn.containsNote(target);
 
                     if (btn.getCellState() == CellButton.State.WRONG) {
-                        btn.setBackground(WRONG_CELL);
+                        btn.setBackground(theme().getWrongCell());
                         if (sameAnswer) {
-                            btn.setBackground(WRONG_HIGHLIGHT);
+                            btn.setBackground(theme().getWrongHighlight());
                         }
                     } else {
-                        btn.setBackground(BOARD_BG);
+                        btn.setBackground(theme().getBoardBackground());
                         if (sameAnswer) {
                             btn.setOpaque(true);
-                            btn.setBackground(SAME_NUMBER);
+                            btn.setBackground(theme().getSameNumber());
                         } else if (hasNote) {
                             btn.setHighlightedNote(target);;
                         }
@@ -254,5 +267,9 @@ public class BoardPanel extends JPanel {
                 btn.repaint();
             }
         }
+    }
+
+    private GameTheme theme() {
+        return styleSetting.getTheme();
     }
 }

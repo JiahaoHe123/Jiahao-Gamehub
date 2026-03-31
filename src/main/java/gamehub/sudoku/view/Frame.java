@@ -4,7 +4,9 @@ import java.awt.CardLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import gamehub.sudoku.model.GameRecord;
+import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuGameRecord;
+import gamehub.sudoku.model.SudokuStyleSetting;
 
 /**
  * Main application frame for the Sudoku game.
@@ -14,7 +16,7 @@ import gamehub.sudoku.model.GameRecord;
  * <ul>
  * <li>Creating and owning the main window</li>
  * <li>Managing navigation between Home and Game pages</li>
- * <li>Holding a shared {@link GameRecord} instance</li>
+ * <li>Holding a shared {@link SudokuGameRecord} instance</li>
  * <li>Starting new games at different difficulty levels</li>
  * </ul>
  *
@@ -24,11 +26,6 @@ import gamehub.sudoku.model.GameRecord;
  */
 public class Frame extends JFrame {
 
-    /** Difficulty level constant */
-    private static final int EASY = 0;
-    private static final int MEDIUM = 1;
-    private static final int HARD = 2;
-
     /** Layout used to switch between different pages */
     private final CardLayout cardLayout = new CardLayout();
 
@@ -36,7 +33,8 @@ public class Frame extends JFrame {
     private final JPanel rootPanel = new JPanel(cardLayout);
 
     /** Persistent game record shared across pages */
-    private final GameRecord record = new GameRecord();
+    private final SudokuGameRecord record = new SudokuGameRecord();
+    private final SudokuStyleSetting styleSetting = new SudokuStyleSetting();
 
     /** Home page (difficulty selection + stats) */
     private final SudokuHomePanel homePanel;
@@ -54,14 +52,14 @@ public class Frame extends JFrame {
     public Frame() {
         super("Sudoku");
 
-        homePanel = new SudokuHomePanel(record);
+        homePanel = new SudokuHomePanel(record, styleSetting);
 
-        homePanel.setOnEasy(() -> startNewGame(EASY));
-        homePanel.setOnMedium(() -> startNewGame(MEDIUM));
-        homePanel.setOnHard(() -> startNewGame(HARD));
+        homePanel.setOnEasy(() -> startNewGame(Difficulty.EASY));
+        homePanel.setOnMedium(() -> startNewGame(Difficulty.MEDIUM));
+        homePanel.setOnHard(() -> startNewGame(Difficulty.HARD));
         homePanel.setOnQuit(() -> System.exit(0));
 
-        gamePanel = new SudokuGamePanel(() -> showHome(), record);
+        gamePanel = new SudokuGamePanel(() -> showHome(), record, styleSetting);
 
         // Register pages with CardLayout
         rootPanel.add(homePanel, "HOME");
@@ -95,10 +93,10 @@ public class Frame extends JFrame {
     /**
      * Starts a new game at the specified difficulty level.
      *
-     * @param level difficulty level (EASY, MEDIUM, HARD)
+     * @param difficulty game difficulty
      */
-    private void startNewGame(int level) {
-        gamePanel.startNewGame(level);
+    private void startNewGame(Difficulty difficulty) {
+        gamePanel.startNewGame(difficulty);
         cardLayout.show(rootPanel, "GAME");
         rootPanel.revalidate();
         rootPanel.repaint();
