@@ -26,6 +26,7 @@ public class SudokuModulePanel extends JPanel {
     private final SudokuGamePanel gamePanel;
     private final JPanel topBar;
     private final JButton backButton;
+    private final JButton themeButton;
 
     public SudokuModulePanel(Runnable onBackToHub) {
         super(new BorderLayout());
@@ -45,7 +46,17 @@ public class SudokuModulePanel extends JPanel {
         topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         backButton = new JButton("Back to Hub");
         backButton.addActionListener(event -> onBackToHub.run());
+        themeButton = new JButton("Theme: Light");
+        themeButton.addActionListener(event -> {
+            GameTheme nextTheme =
+                styleSetting.getTheme() == GameTheme.DARK
+                    ? GameTheme.LIGHT
+                    : GameTheme.DARK;
+            styleSetting.setTheme(nextTheme);
+            refreshThemeViews();
+        });
         topBar.add(backButton);
+        topBar.add(themeButton);
 
         add(topBar, BorderLayout.NORTH);
         add(moduleRoot, BorderLayout.CENTER);
@@ -65,6 +76,11 @@ public class SudokuModulePanel extends JPanel {
         }
         styleSetting.setTheme(theme.isDark() ? GameTheme.DARK : GameTheme.LIGHT);
 
+        refreshThemeViews();
+    }
+
+    private void refreshThemeViews() {
+
         homePanel.refreshTheme();
         gamePanel.refreshTheme();
 
@@ -80,6 +96,21 @@ public class SudokuModulePanel extends JPanel {
             )
         );
         backButton.setOpaque(true);
+
+        themeButton.setForeground(currentTheme.getTextPrimary());
+        themeButton.setBackground(currentTheme.getButtonBackground());
+        themeButton.setBorder(
+            javax.swing.BorderFactory.createLineBorder(
+                currentTheme.getButtonBorder(),
+                1,
+                true
+            )
+        );
+        themeButton.setOpaque(true);
+        themeButton.setText(
+            currentTheme == GameTheme.DARK ? "Theme: Dark" : "Theme: Light"
+        );
+
         moduleRoot.setBackground(currentTheme.getPageBackground());
         setBackground(moduleRoot.getBackground());
     }

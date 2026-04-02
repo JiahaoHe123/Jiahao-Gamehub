@@ -4,13 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 
 import gamehub.snake.model.GameTheme;
+import gamehub.snake.model.SnakeDifficulty;
 import gamehub.snake.model.SnakeStyleSetting;
 
 public class HomePanel extends JPanel {
     private final SnakeStyleSetting styleSettings;
     private final JPanel card;
     private final JLabel titleLabel;
-    private final JLabel subtitleLabel;
+    // private final JLabel subtitleLabel;
+    private final JLabel difficultyLabel;
 
     private final JLabel statsLabel;
     private final JButton startButton;
@@ -100,7 +102,7 @@ public class HomePanel extends JPanel {
             }
         });
 
-        customizeButton = new JButton("Customize Shape");
+        customizeButton = new JButton("Setting");
         customizeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         customizeButton.setFont(new Font("Menlo", Font.BOLD, 16));
         customizeButton.setFocusPainted(false);
@@ -111,11 +113,15 @@ public class HomePanel extends JPanel {
         customizeButton.setPreferredSize(new Dimension(190, 40));
         customizeButton.setMaximumSize(new Dimension(190, 40));
 
-        subtitleLabel = new JLabel(
-            "brew install snake.fun", SwingConstants.CENTER
-        );
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subtitleLabel.setFont(new Font("Menlo", Font.PLAIN, 13));
+        // subtitleLabel = new JLabel(
+        //     "brew install snake.fun", SwingConstants.CENTER
+        // );
+        // subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // subtitleLabel.setFont(new Font("Menlo", Font.PLAIN, 13));
+
+        difficultyLabel = new JLabel("", SwingConstants.CENTER);
+        difficultyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        difficultyLabel.setFont(new Font("Menlo", Font.PLAIN, 13));
 
         card.add(Box.createVerticalStrut(2));
         card.add(titleLabel);
@@ -126,7 +132,9 @@ public class HomePanel extends JPanel {
         card.add(Box.createVerticalStrut(10));
         card.add(customizeButton);
         card.add(Box.createVerticalStrut(14));
-        card.add(subtitleLabel);
+        card.add(difficultyLabel);
+        card.add(Box.createVerticalStrut(6));
+        // card.add(subtitleLabel);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -142,8 +150,11 @@ public class HomePanel extends JPanel {
         setBackground(theme.getBackground());
 
         titleLabel.setForeground(theme.getAccent());
-        subtitleLabel.setForeground(theme.getText());
+        // subtitleLabel.setForeground(theme.getText());
         statsLabel.setForeground(theme.getTextSoft());
+        difficultyLabel.setForeground(theme.getTextSoft());
+        SnakeDifficulty difficulty = styleSettings.getDifficulty();
+        difficultyLabel.setText("Difficulty: " + difficulty.displayName());
 
         startButton.setForeground(theme.getBackground());
         startButton.setBackground(theme.getAccent());

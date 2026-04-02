@@ -69,6 +69,7 @@ public class SnakeStyleSetting {
     private RenderMode renderMode = RenderMode.BLOCKS;
     private String pattern = "<>";
     private ColorPreset colorPreset = ColorPreset.CLASSIC_GREEN;
+    private SnakeDifficulty difficulty = SnakeDifficulty.HARD;
 
     public RenderMode getRenderMode() {
         return renderMode;
@@ -115,6 +116,14 @@ public class SnakeStyleSetting {
         if (theme != null) {
             this.theme = theme;
         }
+    }
+
+    public SnakeDifficulty getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(SnakeDifficulty difficulty) {
+        this.difficulty = difficulty == null ? SnakeDifficulty.HARD : difficulty;
     }
 }
 

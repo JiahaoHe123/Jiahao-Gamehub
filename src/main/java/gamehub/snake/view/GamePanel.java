@@ -20,6 +20,7 @@ import gamehub.snake.model.Direction;
 import gamehub.snake.model.GameState;
 import gamehub.snake.model.GameTheme;
 import gamehub.snake.model.Snake;
+import gamehub.snake.model.SnakeDifficulty;
 import gamehub.snake.model.SnakeStyleSetting;
 
 public class GamePanel extends JPanel {
@@ -30,24 +31,17 @@ public class GamePanel extends JPanel {
     private static final int HUD_HEIGHT = 60;
     private static final double HUD_HEIGHT_IN_CELL =
         HUD_HEIGHT / (double) CELL_SIZE;
-    private static final int FPS = 11;
     private static final int COUNTDOWN_SECONDS = 3;
 
     private final SnakeStyleSetting styleSettings;
-    private final SnakeGameController controller;
+    private SnakeGameController controller;
     private final JButton homepageButton;
 
     private Runnable onHomepageRequested = () -> {};
 
     public GamePanel(SnakeStyleSetting styleSettings) {
         this.styleSettings = styleSettings;
-        this.controller = new SnakeGameController(
-            BOARD_WIDTH,
-            BOARD_HEIGHT,
-            FPS,
-            COUNTDOWN_SECONDS,
-            this::repaint
-        );
+        this.controller = createController(styleSettings.getDifficulty());
 
         setBackground(styleSettings.getTheme().getBackground());
         setFocusable(true);
@@ -77,6 +71,7 @@ public class GamePanel extends JPanel {
     }
 
     public void startNewGameWithCountdown() {
+        ensureControllerMatchesDifficulty();
         controller.startNewGameWithCountdown();
     }
 
@@ -90,6 +85,23 @@ public class GamePanel extends JPanel {
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setOpaque(true);
         return button;
+    }
+
+    private SnakeGameController createController(SnakeDifficulty difficulty) {
+        return new SnakeGameController(
+            BOARD_WIDTH,
+            BOARD_HEIGHT,
+            difficulty.fps(),
+            COUNTDOWN_SECONDS,
+            this::repaint
+        );
+    }
+
+    private void ensureControllerMatchesDifficulty() {
+        SnakeDifficulty selectedDifficulty = styleSettings.getDifficulty();
+        if (controller.getFps() != selectedDifficulty.fps()) {
+            controller = createController(selectedDifficulty);
+        }
     }
 
     public void refreshTheme() {

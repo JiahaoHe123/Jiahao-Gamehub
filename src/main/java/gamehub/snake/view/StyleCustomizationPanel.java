@@ -3,6 +3,7 @@ package gamehub.snake.view;
 import javax.swing.*;
 
 import gamehub.snake.model.GameTheme;
+import gamehub.snake.model.SnakeDifficulty;
 import gamehub.snake.model.SnakeStyleSetting;
 
 import java.awt.*;
@@ -20,12 +21,14 @@ public class StyleCustomizationPanel extends JPanel {
     private final JLabel subtitleLabel;
     private final JLabel colorTitleLabel;
     private final JLabel themeTitleLabel;
+    private final JLabel difficultyTitleLabel;
     private final JRadioButton blocksOption;
     private final JRadioButton chevronOption;
     private final JRadioButton customOption;
     private final JTextField customPatternField;
     private final JComboBox<String> colorPresetCombo;
     private final JComboBox<String> themeCombo;
+    private final JComboBox<String> difficultyCombo;
     private final JLabel previewLabel;
     private final JLabel colorPreviewLabel;
     private final JButton saveAndBackButton;
@@ -136,6 +139,25 @@ public class StyleCustomizationPanel extends JPanel {
         themeTitleLabel.setForeground(TEXT);
         themeTitleLabel.setFont(new Font("Menlo", Font.BOLD, 15));
 
+        difficultyTitleLabel = new JLabel("Game Difficulty");
+        difficultyTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        difficultyTitleLabel.setForeground(TEXT);
+        difficultyTitleLabel.setFont(new Font("Menlo", Font.BOLD, 15));
+
+        difficultyCombo = new JComboBox<>();
+        for (SnakeDifficulty difficulty : SnakeDifficulty.values()) {
+            difficultyCombo.addItem(difficulty.displayName());
+        }
+        difficultyCombo.setMaximumSize(
+            new Dimension(Integer.MAX_VALUE, 34)
+        );
+        difficultyCombo.setMinimumSize(
+            new Dimension(80, 34)
+        );
+        difficultyCombo.setFont(
+            new Font("Menlo", Font.PLAIN, 14)
+        );
+
         themeCombo = new JComboBox<>(new String[] {"Dark", "Light"});
         themeCombo.setSelectedItem(
             styleSettings.getTheme() == GameTheme.DARK ? "Dark" : "Light"
@@ -232,6 +254,10 @@ public class StyleCustomizationPanel extends JPanel {
         card.add(themeTitleLabel);
         card.add(Box.createVerticalStrut(6));
         card.add(themeCombo);
+        card.add(Box.createVerticalStrut(12));
+        card.add(difficultyTitleLabel);
+        card.add(Box.createVerticalStrut(6));
+        card.add(difficultyCombo);
         card.add(Box.createVerticalStrut(16));
         card.add(actionRow);
 
@@ -294,6 +320,7 @@ public class StyleCustomizationPanel extends JPanel {
         themeCombo.setSelectedItem(
             styleSettings.getTheme() == GameTheme.LIGHT ? "Light" : "Dark"
         );
+        difficultyCombo.setSelectedItem(styleSettings.getDifficulty().displayName());
         refreshPreview();
         refreshTheme();
     }
@@ -315,6 +342,7 @@ public class StyleCustomizationPanel extends JPanel {
         subtitleLabel.setForeground(theme.getText());
         colorTitleLabel.setForeground(theme.getText());
         themeTitleLabel.setForeground(theme.getText());
+        difficultyTitleLabel.setForeground(theme.getText());
         previewLabel.setForeground(theme.getText());
 
         blocksOption.setForeground(theme.getText());
@@ -329,6 +357,8 @@ public class StyleCustomizationPanel extends JPanel {
         colorPresetCombo.setBackground(theme.getCardBackground().brighter());
         themeCombo.setForeground(theme.getText());
         themeCombo.setBackground(theme.getCardBackground().brighter());
+        difficultyCombo.setForeground(theme.getText());
+        difficultyCombo.setBackground(theme.getCardBackground().brighter());
 
         saveAndBackButton.setForeground(theme.getBackground());
         saveAndBackButton.setBackground(theme.getAccent());
@@ -364,23 +394,22 @@ public class StyleCustomizationPanel extends JPanel {
         if (blocksOption.isSelected()) {
             styleSettings.setRenderMode(SnakeStyleSetting.RenderMode.BLOCKS);
             styleSettings.setPattern("<>");
-            String selectedLabel = (String) colorPresetCombo.getSelectedItem();
-            styleSettings.setColorPreset(
-                SnakeStyleSetting.ColorPreset.fromLabel(selectedLabel)
-            );
-            return;
-        }
-
-        styleSettings.setRenderMode(SnakeStyleSetting.RenderMode.TEXT_PATTERN);
-        if (chevronOption.isSelected()) {
-            styleSettings.setPattern("<>");
         } else {
-            styleSettings.setPattern(customPatternField.getText());
+            styleSettings.setRenderMode(SnakeStyleSetting.RenderMode.TEXT_PATTERN);
+            if (chevronOption.isSelected()) {
+                styleSettings.setPattern("<>");
+            } else {
+                styleSettings.setPattern(customPatternField.getText());
+            }
         }
 
         String selectedLabel = (String) colorPresetCombo.getSelectedItem();
         styleSettings.setColorPreset(
             SnakeStyleSetting.ColorPreset.fromLabel(selectedLabel)
+        );
+        String selectedDifficulty = (String) difficultyCombo.getSelectedItem();
+        styleSettings.setDifficulty(
+            SnakeDifficulty.fromDisplayName(selectedDifficulty)
         );
     }
 
