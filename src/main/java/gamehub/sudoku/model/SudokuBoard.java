@@ -86,7 +86,7 @@ public class SudokuBoard implements Iterable<Integer> {
      *
      * @param difficulty game difficulty
      */
-    public SudokuBoard(Difficulty difficulty) {
+    public SudokuBoard(SudokuDifficulty difficulty) {
         data = new int[SIZE][SIZE];
         fillMatrix(); // Fill entire board with a valid solution.
 
@@ -108,7 +108,7 @@ public class SudokuBoard implements Iterable<Integer> {
      * @param level difficulty level (0=easy, 1=medium, 2=hard)
      */
     public SudokuBoard(int level) {
-        this(Difficulty.fromLevel(level));
+        this(SudokuDifficulty.fromLevel(level));
     }
 
     /**
@@ -222,7 +222,7 @@ public class SudokuBoard implements Iterable<Integer> {
      * @throws IllegalArgumentException if difficulty is not supported
      * @return total empty cells in a given matrix
      */
-    public int removeEntries(Difficulty difficulty) {
+    public int removeEntries(SudokuDifficulty difficulty) {
         if (difficulty == null) {
             throw new IllegalArgumentException("Difficulty cannot be null");
         }

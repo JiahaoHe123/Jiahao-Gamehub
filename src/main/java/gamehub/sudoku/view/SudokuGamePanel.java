@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import gamehub.sudoku.controller.SudokuGameController;
-import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuDifficulty;
 import gamehub.sudoku.model.SudokuGameRecord;
 import gamehub.sudoku.model.GameTheme;
 import gamehub.sudoku.model.SudokuStyleSetting;
@@ -62,7 +62,7 @@ public class SudokuGamePanel extends JPanel {
     private final JLabel attemptsLabel;
 
     /** The currently selected difficulty for the ongoing game. */
-    private Difficulty currentDifficulty = Difficulty.EASY;
+    private SudokuDifficulty currentDifficulty = SudokuDifficulty.EASY;
 
     public SudokuGamePanel(
         Runnable onHome,
@@ -90,7 +90,7 @@ public class SudokuGamePanel extends JPanel {
         refreshTheme();
     }
 
-    public void startNewGame(Difficulty difficulty) {
+    public void startNewGame(SudokuDifficulty difficulty) {
         this.currentDifficulty = difficulty;
 
         SudokuBoard boardModel = new SudokuBoard(difficulty);

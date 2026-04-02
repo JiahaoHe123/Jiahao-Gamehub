@@ -8,7 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import gamehub.model.AppTheme;
-import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuDifficulty;
 import gamehub.sudoku.model.SudokuGameRecord;
 import gamehub.sudoku.model.GameTheme;
 import gamehub.sudoku.model.SudokuStyleSetting;
@@ -92,7 +92,7 @@ public class SudokuModulePanel extends JPanel {
         moduleRoot.repaint();
     }
 
-    private void startNewGame(Difficulty difficulty) {
+    private void startNewGame(SudokuDifficulty difficulty) {
         gamePanel.startNewGame(difficulty);
         gamePanel.refreshTheme();
         cardLayout.show(moduleRoot, "GAME");

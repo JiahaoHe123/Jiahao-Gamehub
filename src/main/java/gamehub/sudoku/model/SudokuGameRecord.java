@@ -112,7 +112,7 @@ public class SudokuGameRecord extends GameRecord {
     public SudokuGameRecord(Path filePath) {
         super(filePath);
         // init defaults
-        for (Difficulty d : Difficulty.values()) {
+        for (SudokuDifficulty d : SudokuDifficulty.values()) {
             wins.put(winKey(d), 0);
             wins.put(lossKey(d), 0);
         }
@@ -125,7 +125,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param d the given difficulty
      * @return wins count (>= 0)
      */
-    public int getWins(Difficulty d) {
+    public int getWins(SudokuDifficulty d) {
         return wins.getOrDefault(winKey(d), 0);
     }
 
@@ -135,7 +135,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param d the given difficulty
      * @return losses count (>=0)
      */
-    public int getLosses(Difficulty d) {
+    public int getLosses(SudokuDifficulty d) {
         return wins.getOrDefault(lossKey(d), 0);
     }
 
@@ -150,7 +150,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param d the given difficulty
      * @return win rate as a percentage
      */
-    public double getWinRate(Difficulty d) {
+    public double getWinRate(SudokuDifficulty d) {
         int w = getWins(d);
         int l = getLosses(d);
         int total = w + l;
@@ -166,9 +166,9 @@ public class SudokuGameRecord extends GameRecord {
      *
      * @return map Difficulty -> [wins, losses]
      */
-    public Map<Difficulty, int[]> snapshotWL() {
-        Map<Difficulty, int[]> out = new EnumMap<>(Difficulty.class);
-        for (Difficulty d : Difficulty.values()) {
+    public Map<SudokuDifficulty, int[]> snapshotWL() {
+        Map<SudokuDifficulty, int[]> out = new EnumMap<>(SudokuDifficulty.class);
+        for (SudokuDifficulty d : SudokuDifficulty.values()) {
             out.put(d, new int[] { getWins(d), getLosses(d) }); // [wins, losses]
         }
         return out;
@@ -179,7 +179,7 @@ public class SudokuGameRecord extends GameRecord {
      *
      * @param d the given difficulty
      */
-    public void recordWin(Difficulty d) {
+    public void recordWin(SudokuDifficulty d) {
         String k = winKey(d);
         wins.put(k, wins.getOrDefault(k, 0) + 1);
         save(); // persist immediately
@@ -191,7 +191,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param level difficulty index
      */
     public void recordWinByLevel(int level) {
-        recordWin(Difficulty.fromLevel(level));
+        recordWin(SudokuDifficulty.fromLevel(level));
     }
 
     /**
@@ -199,7 +199,7 @@ public class SudokuGameRecord extends GameRecord {
      *
      * @param d the given difficulty
      */
-    public void recordLoss(Difficulty d) {
+    public void recordLoss(SudokuDifficulty d) {
         String k = lossKey(d);
         wins.put(k, wins.getOrDefault(k, 0) + 1);
         save();
@@ -211,7 +211,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param level difficulty index
      */
     public void recordLossByLevel(int level) {
-        recordLoss(Difficulty.fromLevel(level));
+        recordLoss(SudokuDifficulty.fromLevel(level));
     }
 
     /**
@@ -222,7 +222,7 @@ public class SudokuGameRecord extends GameRecord {
      * </p>
      */
     public void resetAll() {
-        for (Difficulty d : Difficulty.values()) {
+        for (SudokuDifficulty d : SudokuDifficulty.values()) {
             wins.put(winKey(d), 0);
             wins.put(lossKey(d), 0);
         }
@@ -310,7 +310,7 @@ public class SudokuGameRecord extends GameRecord {
             List<String> out = new ArrayList<>();
             out.add("# Sudoku history");
             out.add("# Format: key=value");
-            for (Difficulty d : Difficulty.values()) {
+            for (SudokuDifficulty d : SudokuDifficulty.values()) {
                 out.add(winKey(d) + "=" + getWins(d));
                 out.add(lossKey(d) + "=" + getLosses(d));
             }
@@ -360,7 +360,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param d difficulty
      * @return a key like "wins.easy"
      */
-    private static String winKey(Difficulty d) {
+    private static String winKey(SudokuDifficulty d) {
         return "wins." + d.storageKey();
     }
 
@@ -370,7 +370,7 @@ public class SudokuGameRecord extends GameRecord {
      * @param d difficulty
      * @return a key like "loss.easy"
      */
-    private static String lossKey(Difficulty d) {
+    private static String lossKey(SudokuDifficulty d) {
         return "loss." + d.storageKey();
     }
 

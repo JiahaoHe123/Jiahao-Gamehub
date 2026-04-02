@@ -16,7 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuDifficulty;
 import gamehub.sudoku.model.SudokuGameRecord;
 import gamehub.sudoku.model.GameTheme;
 import gamehub.sudoku.model.SudokuStyleSetting;
@@ -47,13 +47,13 @@ public class SudokuHomePanel extends JPanel {
     private final JLabel statsLabel;
 
     /** Difficulty buttons generated from Difficulty enum. */
-    private final Map<Difficulty, JButton> difficultyButtons =
-        new EnumMap<>(Difficulty.class);
+    private final Map<SudokuDifficulty, JButton> difficultyButtons =
+        new EnumMap<>(SudokuDifficulty.class);
 
     private final JButton quitBtn;
 
     /** External callbacks. */
-    private Consumer<Difficulty> onStart = difficulty -> {};
+    private Consumer<SudokuDifficulty> onStart = difficulty -> {};
     private Runnable onQuit = () -> {};
 
     public SudokuHomePanel(SudokuGameRecord record, SudokuStyleSetting styleSetting) {
@@ -86,7 +86,7 @@ public class SudokuHomePanel extends JPanel {
         card.add(statsLabel);
         card.add(Box.createVerticalStrut(25));
 
-        for (Difficulty difficulty : Difficulty.values()) {
+        for (SudokuDifficulty difficulty : SudokuDifficulty.values()) {
             JButton btn = new JButton(difficulty.displayName());
             styleButton(btn);
             btn.addActionListener(e -> onStart.accept(difficulty));
@@ -108,7 +108,7 @@ public class SudokuHomePanel extends JPanel {
         refreshTheme();
     }
 
-    public void setOnStart(Consumer<Difficulty> onStart) {
+    public void setOnStart(Consumer<SudokuDifficulty> onStart) {
         this.onStart = onStart == null ? difficulty -> {} : onStart;
     }
 
@@ -144,7 +144,7 @@ public class SudokuHomePanel extends JPanel {
     public void refreshStats() {
         StringBuilder statsHtml = new StringBuilder();
         // String words = "";
-        for (Difficulty d : Difficulty.values()) {
+        for (SudokuDifficulty d : SudokuDifficulty.values()) {
             statsHtml
                 .append(d.displayName())
                 .append(": ")

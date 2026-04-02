@@ -4,7 +4,7 @@ import java.awt.CardLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import gamehub.sudoku.model.Difficulty;
+import gamehub.sudoku.model.SudokuDifficulty;
 import gamehub.sudoku.model.SudokuGameRecord;
 import gamehub.sudoku.model.SudokuStyleSetting;
 
@@ -93,7 +93,7 @@ public class Frame extends JFrame {
      *
      * @param difficulty game difficulty
      */
-    private void startNewGame(Difficulty difficulty) {
+    private void startNewGame(SudokuDifficulty difficulty) {
         gamePanel.startNewGame(difficulty);
         cardLayout.show(rootPanel, "GAME");
         rootPanel.revalidate();
