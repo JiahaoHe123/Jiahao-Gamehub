@@ -20,14 +20,13 @@ import gamehub.snake.model.Direction;
 import gamehub.snake.model.GameState;
 import gamehub.snake.model.SnakeTheme;
 import gamehub.snake.model.Snake;
+import gamehub.snake.model.SnakeBoardSize;
 import gamehub.snake.model.SnakeDifficulty;
 import gamehub.snake.model.SnakeStyleSetting;
 
 public class SnakeGamePanel extends JPanel {
     private static final int CELL_SIZE = 24;
     private static final int MIN_CELL_SIZE = 8;
-    private static final int BOARD_WIDTH = 25;
-    private static final int BOARD_HEIGHT = 20;
     private static final int HUD_HEIGHT = 60;
     private static final double HUD_HEIGHT_IN_CELL =
         HUD_HEIGHT / (double) CELL_SIZE;
@@ -41,15 +40,18 @@ public class SnakeGamePanel extends JPanel {
 
     public SnakeGamePanel(SnakeStyleSetting styleSettings) {
         this.styleSettings = styleSettings;
-        this.controller = createController(styleSettings.getDifficulty());
+        this.controller = createController(
+            styleSettings.getBoardSize(),
+            styleSettings.getDifficulty()
+        );
 
         setBackground(styleSettings.getTheme().getBackground());
         setFocusable(true);
         setLayout(null);
         setPreferredSize(
             new Dimension(
-                BOARD_WIDTH * CELL_SIZE,
-                BOARD_HEIGHT * CELL_SIZE + HUD_HEIGHT
+                boardWidth() * CELL_SIZE,
+                boardHeight() * CELL_SIZE + HUD_HEIGHT
             )
         );
         setBorder(
@@ -71,7 +73,7 @@ public class SnakeGamePanel extends JPanel {
     }
 
     public void startNewGameWithCountdown() {
-        ensureControllerMatchesDifficulty();
+        ensureControllerMatchesSettings();
         controller.startNewGameWithCountdown();
     }
 
@@ -87,21 +89,45 @@ public class SnakeGamePanel extends JPanel {
         return button;
     }
 
-    private SnakeGameController createController(SnakeDifficulty difficulty) {
+    private SnakeGameController createController(
+        SnakeBoardSize boardSize,
+        SnakeDifficulty difficulty
+    ) {
         return new SnakeGameController(
-            BOARD_WIDTH,
-            BOARD_HEIGHT,
+            boardSize.width(),
+            boardSize.height(),
             difficulty.fps(),
             COUNTDOWN_SECONDS,
             this::repaint
         );
     }
 
-    private void ensureControllerMatchesDifficulty() {
+    private void ensureControllerMatchesSettings() {
+        SnakeBoardSize selectedBoardSize = styleSettings.getBoardSize();
         SnakeDifficulty selectedDifficulty = styleSettings.getDifficulty();
-        if (controller.getFps() != selectedDifficulty.fps()) {
-            controller = createController(selectedDifficulty);
+        boolean boardSizeChanged =
+            controller.getBoardWidth() != selectedBoardSize.width()
+                || controller.getBoardHeight() != selectedBoardSize.height();
+        boolean difficultyChanged = controller.getFps() != selectedDifficulty.fps();
+
+        if (boardSizeChanged || difficultyChanged) {
+            controller = createController(selectedBoardSize, selectedDifficulty);
+            setPreferredSize(
+                new Dimension(
+                    selectedBoardSize.width() * CELL_SIZE,
+                    selectedBoardSize.height() * CELL_SIZE + HUD_HEIGHT
+                )
+            );
+            revalidate();
         }
+    }
+
+    private int boardWidth() {
+        return controller.getBoardWidth();
+    }
+
+    private int boardHeight() {
+        return controller.getBoardHeight();
     }
 
     public void refreshTheme() {
@@ -159,11 +185,14 @@ public class SnakeGamePanel extends JPanel {
             getHeight() - insets.top - insets.bottom
         );
 
-        int maxCellByWidth = Math.max(1, availableWidth / BOARD_WIDTH);
+        int boardWidth = boardWidth();
+        int boardHeight = boardHeight();
+
+        int maxCellByWidth = Math.max(1, availableWidth / boardWidth);
         int maxCellByHeight = Math.max(
             1,
             (int) Math.floor(
-                availableHeight / (BOARD_HEIGHT + HUD_HEIGHT_IN_CELL)
+                availableHeight / (boardHeight + HUD_HEIGHT_IN_CELL)
             )
         );
         int cellSize = Math.max(
@@ -175,8 +204,8 @@ public class SnakeGamePanel extends JPanel {
             (int) Math.round(cellSize * HUD_HEIGHT_IN_CELL),
             28
         );
-        int boardPixelWidth = BOARD_WIDTH * cellSize;
-        int boardPixelHeight = BOARD_HEIGHT * cellSize;
+        int boardPixelWidth = boardWidth * cellSize;
+        int boardPixelHeight = boardHeight * cellSize;
         int gameAreaHeight = boardPixelHeight + hudHeight;
         int boardOffsetX = insets.left
             + Math.max((availableWidth - boardPixelWidth) / 2, 0);
@@ -242,9 +271,12 @@ public class SnakeGamePanel extends JPanel {
         int cellSize,
         SnakeTheme theme
     ) {
-        for (int x = 0; x <= BOARD_WIDTH; x++) {
+        int boardWidth = boardWidth();
+        int boardHeight = boardHeight();
+
+        for (int x = 0; x <= boardWidth; x++) {
             int drawX = boardOffsetX + x * cellSize;
-            if (x % BOARD_WIDTH == 0) {
+            if (x % boardWidth == 0) {
                 g2.setColor(theme.getAccentSoft());
             } else {
                 g2.setColor(theme.getGrid());
@@ -253,13 +285,13 @@ public class SnakeGamePanel extends JPanel {
                 drawX,
                 boardOffsetY,
                 drawX,
-                boardOffsetY + BOARD_HEIGHT * cellSize
+                boardOffsetY + boardHeight * cellSize
             );
         }
 
-        for (int y = 0; y <= BOARD_HEIGHT; y++) {
+        for (int y = 0; y <= boardHeight; y++) {
             int drawY = boardOffsetY + y * cellSize;
-            if (y % BOARD_HEIGHT == 0) {
+            if (y % boardHeight == 0) {
                 g2.setColor(theme.getAccentSoft());
             } else {
                 g2.setColor(theme.getGrid());
@@ -267,7 +299,7 @@ public class SnakeGamePanel extends JPanel {
             g2.drawLine(
                 boardOffsetX,
                 drawY,
-                boardOffsetX + BOARD_WIDTH * cellSize,
+                boardOffsetX + boardWidth * cellSize,
                 drawY
             );
         }

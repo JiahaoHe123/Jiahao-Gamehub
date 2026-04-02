@@ -3,6 +3,7 @@ package gamehub.snake.view;
 import javax.swing.*;
 
 import gamehub.snake.model.SnakeTheme;
+import gamehub.snake.model.SnakeBoardSize;
 import gamehub.snake.model.SnakeDifficulty;
 import gamehub.snake.model.SnakeStyleSetting;
 
@@ -22,6 +23,7 @@ public class StyleCustomizationPanel extends JPanel {
     private final JLabel colorTitleLabel;
     private final JLabel themeTitleLabel;
     private final JLabel difficultyTitleLabel;
+    private final JLabel boardSizeTitleLabel;
     private final JRadioButton blocksOption;
     private final JRadioButton chevronOption;
     private final JRadioButton customOption;
@@ -29,6 +31,7 @@ public class StyleCustomizationPanel extends JPanel {
     private final JComboBox<String> colorPresetCombo;
     private final JComboBox<String> themeCombo;
     private final JComboBox<String> difficultyCombo;
+    private final JComboBox<String> boardSizeCombo;
     private final JLabel previewLabel;
     private final JLabel colorPreviewLabel;
     private final JButton saveAndBackButton;
@@ -144,6 +147,11 @@ public class StyleCustomizationPanel extends JPanel {
         difficultyTitleLabel.setForeground(TEXT);
         difficultyTitleLabel.setFont(new Font("Menlo", Font.BOLD, 15));
 
+        boardSizeTitleLabel = new JLabel("Board Size");
+        boardSizeTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        boardSizeTitleLabel.setForeground(TEXT);
+        boardSizeTitleLabel.setFont(new Font("Menlo", Font.BOLD, 15));
+
         difficultyCombo = new JComboBox<>();
         for (SnakeDifficulty difficulty : SnakeDifficulty.values()) {
             difficultyCombo.addItem(difficulty.displayName());
@@ -155,6 +163,20 @@ public class StyleCustomizationPanel extends JPanel {
             new Dimension(80, 34)
         );
         difficultyCombo.setFont(
+            new Font("Menlo", Font.PLAIN, 14)
+        );
+
+        boardSizeCombo = new JComboBox<>();
+        for (SnakeBoardSize boardSize : SnakeBoardSize.values()) {
+            boardSizeCombo.addItem(boardSize.displayName());
+        }
+        boardSizeCombo.setMaximumSize(
+            new Dimension(Integer.MAX_VALUE, 34)
+        );
+        boardSizeCombo.setMinimumSize(
+            new Dimension(80, 34)
+        );
+        boardSizeCombo.setFont(
             new Font("Menlo", Font.PLAIN, 14)
         );
 
@@ -258,6 +280,10 @@ public class StyleCustomizationPanel extends JPanel {
         card.add(difficultyTitleLabel);
         card.add(Box.createVerticalStrut(6));
         card.add(difficultyCombo);
+        card.add(Box.createVerticalStrut(12));
+        card.add(boardSizeTitleLabel);
+        card.add(Box.createVerticalStrut(6));
+        card.add(boardSizeCombo);
         card.add(Box.createVerticalStrut(16));
         card.add(actionRow);
 
@@ -321,6 +347,7 @@ public class StyleCustomizationPanel extends JPanel {
             styleSettings.getTheme() == SnakeTheme.LIGHT ? "Light" : "Dark"
         );
         difficultyCombo.setSelectedItem(styleSettings.getDifficulty().displayName());
+        boardSizeCombo.setSelectedItem(styleSettings.getBoardSize().displayName());
         refreshPreview();
         refreshTheme();
     }
@@ -343,6 +370,7 @@ public class StyleCustomizationPanel extends JPanel {
         colorTitleLabel.setForeground(theme.getText());
         themeTitleLabel.setForeground(theme.getText());
         difficultyTitleLabel.setForeground(theme.getText());
+        boardSizeTitleLabel.setForeground(theme.getText());
         previewLabel.setForeground(theme.getText());
 
         blocksOption.setForeground(theme.getText());
@@ -359,6 +387,8 @@ public class StyleCustomizationPanel extends JPanel {
         themeCombo.setBackground(theme.getCardBackground().brighter());
         difficultyCombo.setForeground(theme.getText());
         difficultyCombo.setBackground(theme.getCardBackground().brighter());
+        boardSizeCombo.setForeground(theme.getText());
+        boardSizeCombo.setBackground(theme.getCardBackground().brighter());
 
         saveAndBackButton.setForeground(theme.getBackground());
         saveAndBackButton.setBackground(theme.getAccent());
@@ -411,6 +441,14 @@ public class StyleCustomizationPanel extends JPanel {
         styleSettings.setDifficulty(
             SnakeDifficulty.fromDisplayName(selectedDifficulty)
         );
+
+        String selectedBoardSize = (String) boardSizeCombo.getSelectedItem();
+        for (SnakeBoardSize boardSize : SnakeBoardSize.values()) {
+            if (boardSize.displayName().equals(selectedBoardSize)) {
+                styleSettings.setBoardSize(boardSize);
+                break;
+            }
+        }
     }
 
     private void refreshPreview() {

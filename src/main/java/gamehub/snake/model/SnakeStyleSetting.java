@@ -70,6 +70,7 @@ public class SnakeStyleSetting {
     private String pattern = "<>";
     private ColorPreset colorPreset = ColorPreset.CLASSIC_GREEN;
     private SnakeDifficulty difficulty = SnakeDifficulty.HARD;
+    private SnakeBoardSize boardSize = SnakeBoardSize.MEDIUM;
 
     public RenderMode getRenderMode() {
         return renderMode;
@@ -124,6 +125,14 @@ public class SnakeStyleSetting {
 
     public void setDifficulty(SnakeDifficulty difficulty) {
         this.difficulty = difficulty == null ? SnakeDifficulty.HARD : difficulty;
+    }
+
+    public SnakeBoardSize getBoardSize() {
+        return boardSize;
+    }
+
+    public void setBoardSize(SnakeBoardSize boardSize) {
+        this.boardSize = boardSize == null ? SnakeBoardSize.MEDIUM : boardSize;
     }
 }
 
