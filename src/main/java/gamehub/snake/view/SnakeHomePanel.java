@@ -23,6 +23,7 @@ public class SnakeHomePanel extends JPanel {
     private final JLabel statsLabel;
     private final JButton startButton;
     private final JButton customizeButton;
+    private final JButton recordButton;
 
     public SnakeHomePanel(SnakeStyleSetting styleSettings, SnakeGameRecord record) {
         super(new BorderLayout());
@@ -71,11 +72,11 @@ public class SnakeHomePanel extends JPanel {
         card.setOpaque(false);
         card.setBorder(
             BorderFactory.createEmptyBorder(
-                30, 34, 30, 34
+                36, 42, 36, 42
             )
         );
         card.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.setPreferredSize(new Dimension(420, 270));
+        card.setPreferredSize(new Dimension(560, 380));
 
         titleLabel = new JLabel("Snake");
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -122,6 +123,17 @@ public class SnakeHomePanel extends JPanel {
         customizeButton.setPreferredSize(new Dimension(190, 40));
         customizeButton.setMaximumSize(new Dimension(190, 40));
 
+        recordButton = new JButton("Records");
+        recordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        recordButton.setFont(new Font("Menlo", Font.BOLD, 16));
+        recordButton.setFocusPainted(false);
+        recordButton.setOpaque(true);
+        recordButton.setCursor(
+            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+        );
+        recordButton.setPreferredSize(new Dimension(190, 40));
+        recordButton.setMaximumSize(new Dimension(190, 40));
+
         // subtitleLabel = new JLabel(
         //     "brew install snake.fun", SwingConstants.CENTER
         // );
@@ -140,6 +152,8 @@ public class SnakeHomePanel extends JPanel {
         card.add(startButton);
         card.add(Box.createVerticalStrut(10));
         card.add(customizeButton);
+        card.add(Box.createVerticalStrut(10));
+        card.add(recordButton);
         card.add(Box.createVerticalStrut(14));
         card.add(difficultyLabel);
         card.add(Box.createVerticalStrut(6));
@@ -213,6 +227,12 @@ public class SnakeHomePanel extends JPanel {
             BorderFactory.createLineBorder(theme.getButtonBorder(), 1, true)
         );
 
+        recordButton.setForeground(theme.getText());
+        recordButton.setBackground(theme.getButtonBackground());
+        recordButton.setBorder(
+            BorderFactory.createLineBorder(theme.getButtonBorder(), 1, true)
+        );
+
         repaint();
     }
 
@@ -226,5 +246,9 @@ public class SnakeHomePanel extends JPanel {
 
     public JButton getCustomizeButton() {
         return customizeButton;
+    }
+
+    public JButton getRecordButton() {
+        return recordButton;
     }
 }

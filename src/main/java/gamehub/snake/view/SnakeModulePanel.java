@@ -23,6 +23,7 @@ public class SnakeModulePanel extends JPanel {
     private final SnakeHomePanel homePanel;
     private final StyleCustomizationPanel customizationPanel;
     private final SnakeGamePanel gamePanel;
+    private final SnakeRecordView recordView;
     private final JPanel topBar;
     private final JButton backButton;
 
@@ -39,6 +40,7 @@ public class SnakeModulePanel extends JPanel {
         homePanel = new SnakeHomePanel(styleSetting, record);
         customizationPanel = new StyleCustomizationPanel(styleSetting);
         gamePanel = new SnakeGamePanel(styleSetting, record);
+        recordView = new SnakeRecordView(styleSetting, record);
         customizationPanel.setThemeManagedExternally(true);
 
         navigationController = new SnakeNavigationController(
@@ -46,7 +48,8 @@ public class SnakeModulePanel extends JPanel {
             cardLayout,
             homePanel,
             customizationPanel,
-            gamePanel
+            gamePanel,
+            recordView
         );
         navigationController.initialize();
 
@@ -75,6 +78,7 @@ public class SnakeModulePanel extends JPanel {
 
         homePanel.refreshTheme();
         gamePanel.refreshTheme();
+        recordView.refreshTheme();
         customizationPanel.syncFromSettings();
 
         SnakeTheme theme = styleSetting.getTheme();
