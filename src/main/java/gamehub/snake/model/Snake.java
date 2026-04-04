@@ -58,4 +58,12 @@ public class Snake {
     public int size() {
         return body.size();
     }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public Direction getPendingDirection() {
+        return pendingDirection;
+    }
 }
